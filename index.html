@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Mock Test</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f5f5f5;
+      margin: 20px;
+    }
+    .timer {
+      position: fixed;
+      top: 20px;
+      right: 30px;
+      font-size: 20px;
+      font-weight: bold;
+      background: #fff3cd;
+      padding: 10px 20px;
+      border: 2px solid #ffeeba;
+      border-radius: 10px;
+    }
+    .passage {
+      background: white;
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 30px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    h2, h3 {
+      color: #333;
+    }
+    button {
+      background-color: #007bff;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    .analysis {
+      display: none;
+      background: #e6ffe6;
+      padding: 20px;
+      border-radius: 10px;
+    }
+    .correct {
+      color: green;
+    }
+    .wrong {
+      color: red;
+    }
+  </style>
+</head>
+<body>
+  <div class="timer" id="timer">Time Left: 30:00</div>
+
+  <form id="testForm">
+    <!-- QUESTIONS WILL BE INSERTED HERE BY SCRIPT -->
+    <div style="text-align:center">
+      <button type="submit">Submit Test</button>
+    </div>
+  </form>
+
+  <div class="analysis" id="analysis"></div>
+
+  <script>
+    const questions = [
+      {
+        passage: "Crowd Management at Religious Sites",
+        content: "Two tragedies occurred in Haridwar and Barabanki...",
+        q: [
+          { q: "What caused the panic at the Mansa Devi shrine?", options: ["Fire outbreak", "Power line rumour", "Crowd fight", "Loud explosion"], correct: 1 },
+          { q: "What is lacking during temple operations?", options: ["Police", "Rituals", "Safety drills", "Fundraising"], correct: 2 },
+          { q: "Govt's typical response to such accidents?", options: ["Punish authorities", "More security", "Compensation", "Cancel festivals"], correct: 2 },
+          { q: "Solution to manage large crowds?", options: ["Drones", "AI and LiDAR", "Story broadcasts", "Ban elders"], correct: 1 },
+          { q: "How to build safety culture?", options: ["Avoid gatherings", "Livestream drills", "More priests", "Pamphlets"], correct: 1 }
+        ]
+      },
+      {
+        passage: "Lessons from the Chola Dynasty",
+        content: "PM Modi highlighted the legacy of the Cholas...",
+        q: [
+          { q: "Key democratic method used by Cholas?", options: ["App", "Kudavolai Murai", "Military", "Hereditary"], correct: 1 },
+          { q: "Modern issue compared to temple resilience?", options: ["Satellites", "Earthquake buildings", "Towers", "Campaigns"], correct: 1 },
+          { q: "What to learn from Chola rule?", options: ["Diplomacy", "Temple design", "Civic mgmt", "Horse breeding"], correct: 2 },
+          { q: "Issue in Cauvery delta?", options: ["Rain", "Snow", "Floods", "Pollution"], correct: 2 },
+          { q: "How to commemorate Cholas?", options: ["Statues", "Clothes", "Admin systems", "Temple tourism"], correct: 2 }
+        ]
+      },
+      {
+        passage: "Legal Boundaries of AYUSH Practitioners",
+        content: "The editorial critiques AYUSH legitimacy...",
+        q: [
+          { q: "What sparked AYUSH debate?", options: ["Fire", "Twitter debate", "WHO", "Fake video"], correct: 1 },
+          { q: "Which law governs AYUSH today?", options: ["Magic Act", "Medical Council", "NCISM Act", "Health Reform"], correct: 2 },
+          { q: "What surgeries allowed in 2020?", options: ["Brain", "Cardiac", "Minor (gallbladder etc)", "Eye"], correct: 2 },
+          { q: "SC ruling on AYUSH prescribing modern med?", options: ["Legal", "Banned w/o MBBS", "Rural only", "Emergency only"], correct: 1 },
+          { q: "Concern over AYUSH in Ayushman Bharat?", options: ["Shopping", "Private colleges", "Wasted money", "Tourism"], correct: 2 }
+        ]
+      },
+      {
+        passage: "Western Response to Gaza Crisis",
+        content: "Joint Western statement condemns Israel...",
+        q: [
+          { q: "Western countries condemned what action most?", options: ["Trade", "Ceasefire", "Aid blocking + killings", "Roads"], correct: 2 },
+          { q: "Israel using starvation as?", options: ["Feeding", "Weapon", "Famine end", "Exports"], correct: 1 },
+          { q: "Who didn't sign the statement?", options: ["France/UK", "India/Brazil", "US/Germany", "Italy/NL"], correct: 2 },
+          { q: "Author's suggestion to India/China?", options: ["Silence", "Fund Israel", "Peacekeeping", "Jerusalem"], correct: 2 },
+          { q: "Phrase showing urgency?", options: ["Diplomacy", "Watch", "Humanity is one and universal", "Profit"], correct: 2 }
+        ]
+      }
+    ];
+
+    const form = document.getElementById("testForm");
+    const analysis = document.getElementById("analysis");
+
+    // Render all questions dynamically
+    let index = 0;
+    questions.forEach((block, pIndex) => {
+      const container = document.createElement("div");
+      container.className = "passage";
+      container.innerHTML = `<h2>Passage ${pIndex + 1}: ${block.passage}</h2><p>${block.content}</p>`;
+      block.q.forEach((item, qIndex) => {
+        const fullIndex = index++;
+        container.innerHTML += `<h3>Q${fullIndex + 1}. ${item.q}</h3>`;
+        item.options.forEach((opt, oIndex) => {
+          container.innerHTML += `
+            <label>
+              <input type="radio" name="q${fullIndex}" value="${oIndex}"> ${opt}
+            </label><br>`;
+        });
+      });
+      form.insertBefore(container, form.lastElementChild);
+    });
+
+    let startTime = Date.now();
+
+    form.onsubmit = function(e) {
+      e.preventDefault();
+      let correct = 0, wrong = 0;
+      let resultHTML = `<h2>Test Analysis</h2>`;
+      const total = index;
+      index = 0;
+      questions.forEach((block) => {
+        block.q.forEach((item) => {
+          const chosen = form[`q${index}`].value;
+          if (parseInt(chosen) === item.correct) {
+            correct++;
+          } else {
+            wrong++;
+            resultHTML += `<p class='wrong'>Q${index + 1} Wrong. Correct Answer: <b>${item.options[item.correct]}</b></p>`;
+          }
+          index++;
+        });
+      });
+      const timeTaken = Math.floor((Date.now() - startTime) / 1000);
+      const mins = Math.floor(timeTaken / 60);
+      const secs = timeTaken % 60;
+      resultHTML = `
+        <p>Total Correct: <span class='correct'>${correct}</span></p>
+        <p>Total Wrong: <span class='wrong'>${wrong}</span></p>
+        <p>Time Taken: ${mins}m ${secs}s</p>
+        <hr>` + resultHTML;
+
+      form.style.display = "none";
+      analysis.style.display = "block";
+      analysis.innerHTML = resultHTML;
+    }
+
+    // Timer logic (30 minutes = 1800 seconds)
+    let timeLeft = 1800;
+    const timerEl = document.getElementById("timer");
+    const countdown = setInterval(() => {
+      if (timeLeft <= 0) {
+        clearInterval(countdown);
+        form.requestSubmit();
+      } else {
+        timeLeft--;
+        const m = String(Math.floor(timeLeft / 60)).padStart(2, '0');
+        const s = String(timeLeft % 60).padStart(2, '0');
+        timerEl.textContent = `Time Left: ${m}:${s}`;
+      }
+    }, 1000);
+  </script>
+</body>
+</html>
